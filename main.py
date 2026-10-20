@@ -1,4 +1,5 @@
 import base64
+import json
 from typing import Any
 
 import astrbot.core.message.components as Comp
@@ -10,6 +11,7 @@ from astrbot.core.star.filter.event_message_type import EventMessageType
 
 from .api_aggregator import APICoreApp, APIEntry, DataResource
 from .config import PluginConfig
+from .entertainment_menu import render_menu
 from .page_controller import APIPageController
 from .utils import get_nickname, get_reply_text
 
@@ -134,12 +136,64 @@ class APIPlugin(Star):
             One readable line for list display.
         """
         params = ", ".join(entry.params.keys()) if entry.params else "-"
-        return f"{entry.name} | type={entry.type} | params={params}"
+        state = "available" if entry.valid else "temporarily unavailable"
+        return f"{entry.name} | type={entry.type} | params={params} | {state}"
+
+    @staticmethod
+    def _allowed(event: AstrMessageEvent) -> bool:
+        """Only private messages or a group message explicitly @mentioning this bot."""
+        if not event.get_group_id():
+            return True
+        bot_id = str(event.get_self_id() or "")
+        return bool(bot_id) and any(
+            isinstance(part, Comp.At) and str(part.qq) == bot_id
+            for part in event.get_messages()
+        )
+
+    def _accessible_entries(self, event: AstrMessageEvent) -> list[APIEntry]:
+        user_id = event.get_sender_id()
+        group_id = event.get_group_id()
+        session_id = event.unified_msg_origin
+        is_admin = event.is_admin()
+        result = []
+        for entry in self.core.api_mgr.list_enabled_entries():
+            if not entry.scope or any(
+                scope == "admin" and is_admin
+                or scope in (user_id, group_id, session_id)
+                for scope in entry.scope
+            ):
+                result.append(entry)
+        return result
+
+    def _failure_text(self, entry: APIEntry) -> str:
+        reason = "上游接口暂时没有返回可用数据，请稍后重试。"
+        try:
+            details = json.loads((self.cfg.data_dir / "api_health.json").read_text(encoding="utf-8"))
+            reason = details.get(entry.name, {}).get("reason") or reason
+        except (OSError, ValueError, TypeError):
+            pass
+        return f"{entry.name}暂时不可用：{reason}"
+
+    @filter.command("娱乐")
+    async def entertainment_menu(self, event: AstrMessageEvent, category: str = ""):
+        """Show the image menu; /娱乐 文字|图片|视频|语音 shows a category."""
+        if not self._allowed(event):
+            return
+        aliases = {"文字": "text", "文本": "text", "图片": "image", "图": "image",
+                   "视频": "video", "影": "video", "语音": "audio", "音频": "audio"}
+        selected = aliases.get(category, "")
+        if category and category not in {"菜单", "返回", "帮助", "帮"} and not selected:
+            yield event.plain_result("用法：/娱乐 [文字|图片|视频|语音]")
+            return
+        image = render_menu(self._accessible_entries(event), selected)
+        yield event.chain_result([Comp.Image.fromBytes(image)])
 
     # ================ API commands =================
 
     @filter.command("查看api", aliases=["查看api列表", "api列表"])
     async def api_detail(self, event: AstrMessageEvent, api_name: str | None = None):
+        if not self._allowed(event):
+            return
         if api_name:
             entry = self.core.api_mgr.get_entry(api_name)
             if entry:
@@ -148,10 +202,14 @@ class APIPlugin(Star):
                 return
         yield event.plain_result(self.core.api_mgr.display_entries())
 
-    @filter.permission_type(filter.PermissionType.ADMIN)
     @filter.command("启用api")
     async def enable_api(self, event: AstrMessageEvent, api_name: str | None = None):
         """启用api <api名称>"""
+        if not self._allowed(event):
+            return
+        if not event.is_admin():
+            yield event.plain_result("仅管理员可管理 API。")
+            return
         target_name = str(api_name or "").strip()
         if not target_name:
             yield event.plain_result("未指定 API 名称")
@@ -169,10 +227,14 @@ class APIPlugin(Star):
         )
         yield event.plain_result(f"已启用 API：{target_name}")
 
-    @filter.permission_type(filter.PermissionType.ADMIN)
     @filter.command("禁用api")
     async def disable_api(self, event: AstrMessageEvent, api_name: str | None = None):
         """禁用api <api名称>"""
+        if not self._allowed(event):
+            return
+        if not event.is_admin():
+            yield event.plain_result("仅管理员可管理 API。")
+            return
         target_name = str(api_name or "").strip()
         if not target_name:
             yield event.plain_result("未指定 API 名称")
@@ -206,6 +268,8 @@ class APIPlugin(Star):
         Returns:
             A short candidate list, or compact detail when query is an exact API name.
         """
+        if not self._allowed(event):
+            return "API calls require a private message or an explicit @mention of the bot."
         query_text = str(query or "").strip()
         user_id = event.get_sender_id()
         group_id = event.get_group_id()
@@ -236,6 +300,8 @@ class APIPlugin(Star):
                 None,
             )
             if exact_entry is not None:
+                if not exact_entry.valid:
+                    return "API call failed: " + self._failure_text(exact_entry)
                 params = (
                     ", ".join(exact_entry.params.keys()) if exact_entry.params else "-"
                 )
@@ -306,6 +372,8 @@ class APIPlugin(Star):
         Returns:
             Text content for text APIs, or a short delivery summary after sending media.
         """
+        if not self._allowed(event):
+            return "API calls require a private message or an explicit @mention of the bot."
         target_name = str(api_name or "").strip()
         if not target_name:
             return "API call failed: api_name is required."
@@ -317,16 +385,12 @@ class APIPlugin(Star):
 
         source_entry = self.core.api_mgr.get_entry(target_name)
         if source_entry is not None:
-            if not source_entry.check_activate(
-                text=source_entry.name,
-                user_id=user_id,
-                group_id=group_id,
-                session_id=session_id,
-                is_admin=is_admin,
-            ):
+            if source_entry not in self._accessible_entries(event):
                 return (
                     "API call failed: the API is not accessible in the current context."
                 )
+            if not source_entry.valid:
+                return "API call failed: " + self._failure_text(source_entry)
             entry = APIEntry(source_entry.to_dict())
         else:
             matched_entries = self.core.api_mgr.match_entries(
@@ -361,7 +425,7 @@ class APIPlugin(Star):
             return f"API call failed: {exc}"
 
         if data is None:
-            return f"API call failed: no data returned for {entry.name}."
+            return "API call failed: " + self._failure_text(entry)
 
         if data.data_type.is_text and data.final_text:
             return data.final_text
@@ -383,7 +447,7 @@ class APIPlugin(Star):
 
     @filter.event_message_type(EventMessageType.ALL)
     async def on_message(self, event: AstrMessageEvent):
-        if self.cfg.need_prefix and not event.is_at_or_wake_command:
+        if not self._allowed(event):
             return
 
         msg = event.message_str
@@ -402,6 +466,11 @@ class APIPlugin(Star):
             is_admin=event.is_admin(),
         )
         if not entries:
+            for entry in self._accessible_entries(event):
+                if not entry.valid and (entry.name == cmd.lstrip("/") or entry._match_keywords(cmd)):
+                    event.should_call_llm(True)
+                    yield event.plain_result(self._failure_text(entry))
+                    return
             return
 
         event.should_call_llm(True)
@@ -414,8 +483,10 @@ class APIPlugin(Star):
                 )
             except Exception as exc:
                 logger.error(f"data processing failed for {entry.name}: {exc}")
+                yield event.plain_result(self._failure_text(entry))
                 continue
             if data is None:
+                yield event.plain_result(self._failure_text(entry))
                 continue
 
             try:

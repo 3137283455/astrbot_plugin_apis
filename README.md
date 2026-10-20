@@ -1,3 +1,5 @@
+本分支用于 3137283455 的机器人，包含私聊 / @ 限制、图片娱乐菜单和接口交付修复。来源与部署说明见 [本分支说明](本分支说明.md)，上游项目为 [Zhalslar/astrbot_plugin_apis](https://github.com/Zhalslar/astrbot_plugin_apis)。
+
 <div align="center">
 
 ![:name](https://count.getloli.com/@astrbot_plugin_apis?name=astrbot_plugin_apis&theme=minecraft&padding=6&offset=0&align=top&scale=1&pixelated=1&darkmode=auto)

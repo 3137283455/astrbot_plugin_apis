@@ -1,7 +1,7 @@
 import json
 import re
 from dataclasses import dataclass
-from urllib.parse import unquote, urlparse
+from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
@@ -98,13 +98,27 @@ class RequestResult:
             r'(https?://[^\s<>"{}|\\^`\[\]\')(),;]+\b)',
             re.IGNORECASE,
         )
-        candidates = regex.findall(self.raw_text)
+        candidates = []
+        # Keep signed query strings and comma-containing image transformations
+        # intact when a JSON field or parse rule already provides a complete URL.
+        def collect(value):
+            if isinstance(value, str) and value.startswith(("https://", "http://")) and not re.search(r"\s", value):
+                candidates.append(value)
+            elif isinstance(value, dict):
+                for item in value.values(): collect(item)
+            elif isinstance(value, list):
+                for item in value: collect(item)
+        try:
+            collect(json.loads(self.raw_text))
+        except ValueError:
+            collect(self.raw_text.strip())
+        if not candidates:
+            candidates = regex.findall(self.raw_text)
 
         valid, seen = [], set()
 
         for raw in candidates:
             raw = raw.strip("\"'")
-            raw = unquote(raw)
             parsed = urlparse(raw)
 
             if parsed.scheme in {"http", "https"} and parsed.netloc:

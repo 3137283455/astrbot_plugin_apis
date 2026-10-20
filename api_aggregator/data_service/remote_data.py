@@ -2,6 +2,7 @@ import asyncio
 from collections import defaultdict
 from collections.abc import AsyncIterator, Awaitable, Callable
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 from aiohttp import ClientSession, ClientTimeout
 
@@ -75,11 +76,10 @@ class RemoteDataService:
                 params=params,
                 timeout=ClientTimeout(timeout),
             ) as resp:
-                resp.raise_for_status()
-
                 result.status = resp.status
                 result.content_type = resp.headers.get("Content-Type", "").lower()
                 result.final_url = str(resp.url)
+                resp.raise_for_status()
 
                 if "application/json" in result.content_type:
                     result.raw_text = await resp.text()
@@ -93,8 +93,9 @@ class RemoteDataService:
                 return result
 
         except Exception as e:
-            logger.error(f"Request failed {url}: {e}")
-            result.error = str(e)
+            parsed = urlsplit(url)
+            logger.error("Request failed %s%s: %s", parsed.hostname, parsed.path, type(e).__name__)
+            result.error = f"{type(e).__name__}: HTTP {result.status}" if result.status else type(e).__name__
             return result
 
     async def get_data(self, entry: APIEntry) -> RequestResult:
@@ -110,16 +111,30 @@ class RemoteDataService:
         if not result.ok:
             return result
 
+        # Reject API error JSON before parsing can discard its code/msg fields.
+        if not result.is_valid():
+            result.error = "Invalid upstream response"
+            return result
+
         if entry.parse:
             result.parse_nested(entry.parse)
 
-        for url in result.extract_urls():
+        for url in ([] if entry.data_type.is_text else result.extract_urls()):
+            # CDN downloads must not inherit API tokens or query parameters.
+            same_host = urlsplit(url).hostname == urlsplit(entry.url).hostname
+            download_headers = headers if same_host else self.default_headers.copy()
             downloaded = await self._request(
                 url,
-                headers=headers,
-                params=params,
+                headers=download_headers,
+                params={},
                 timeout=timeout,
             )
+            if not downloaded.ok and downloaded.status == 403 and url.startswith("http://"):
+                parsed = urlsplit(url)
+                downloaded = await self._request(
+                    urlunsplit(parsed._replace(scheme="https")),
+                    headers=download_headers, params={}, timeout=timeout,
+                )
             if downloaded.is_binary:
                 return downloaded
 
