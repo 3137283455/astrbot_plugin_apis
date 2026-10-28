@@ -16,5 +16,16 @@
     "hint": "当接口返回错误或异常数据且此项不为空时, 若存在本地数据则使用本地数据兜底",
     "type": "bool",
     "default": true
+  },
+  "sixty_enabled": {
+    "description": "启用本机60s资讯服务",
+    "hint": "需先部署 vikiboss/60s；仅迁移经过验证的条目。关闭可还原迁移前的接口。",
+    "type": "bool",
+    "default": false
+  },
+  "sixty_base_url": {
+    "description": "60s服务地址",
+    "type": "string",
+    "default": "http://127.0.0.1:4399"
   }
 }

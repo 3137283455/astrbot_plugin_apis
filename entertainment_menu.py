@@ -56,7 +56,7 @@ def render_menu(entries, category=""):
             draw.text((x + 27, y + 104), f"/娱乐 {label}", font=_font(27), fill=COLORS[kind])
             examples = "  ·  ".join(grouped[kind][:3]) or "当前无可用项目"
             draw.text((x + 27, y + 166), examples, font=_font(24), fill="#52696F")
-        footer = "示例：@机器人 讲个笑话   ·   /娱乐 图片   ·   /查看api"
+        footer = "资讯与热榜：/资讯   ·   分类：/娱乐 图片   ·   参数：/查看api 项目名"
     draw.text((60, height - 78), footer, font=_font(24), fill="#52696F")
     output = BytesIO()
     image.save(output, format="PNG", optimize=True)

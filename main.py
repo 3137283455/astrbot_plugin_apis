@@ -12,6 +12,7 @@ from astrbot.core.star.filter.event_message_type import EventMessageType
 from .api_aggregator import APICoreApp, APIEntry, DataResource
 from .config import PluginConfig
 from .entertainment_menu import render_menu
+from .sixty import SixtyBridge, BY_NAME
 from .page_controller import APIPageController
 from .utils import get_nickname, get_reply_text
 
@@ -21,12 +22,14 @@ class APIPlugin(Star):
         super().__init__(context)
         self.cfg = PluginConfig(config, context)
         self.core = APICoreApp(self.cfg)
+        self.sixty = SixtyBridge(self.cfg)
         self.page_controller = APIPageController(context, self.core)
         self.page_controller.register_routes()
 
     async def initialize(self):
         await self.core.start()
         self._load_presets()
+        self.sixty.migrate(self.core)
 
     async def terminate(self):
         await self.core.stop()
@@ -71,6 +74,9 @@ class APIPlugin(Star):
     async def _build_params(
         self, event: AstrMessageEvent, entry: APIEntry, args: list[str]
     ) -> dict[str, Any]:
+        bridge = getattr(self, "sixty", None)
+        if bridge is not None and bridge.owns(entry):
+            return bridge.params(entry, " ".join(args))
         params = entry.params or {}
         keys = list(params.keys())
         updated_params = dict(params)
@@ -125,6 +131,27 @@ class APIPlugin(Star):
 
         return updated_params
 
+    async def _fetch_data(self, entry):
+        bridge = getattr(self, "sixty", None)
+        if bridge is not None and bridge.owns(entry):
+            return await bridge.fetch(entry)
+        return await self.core.data_service.fetch(entry, use_local=self.cfg.use_local)
+
+    @filter.command("资讯", aliases=["60s", "60秒", "热搜菜单"])
+    async def sixty_menu(self, event: AstrMessageEvent, category: str = ""):
+        """查看已启用的60s功能图片菜单：/资讯 [热榜|资讯|工具|图片|趣味]。"""
+        if not self._allowed(event):
+            return
+        event.should_call_llm(True)
+        if not self.cfg.sixty_enabled:
+            yield event.plain_result("60s 资讯服务尚未启用。")
+            return
+        if category and category not in {"热榜", "资讯", "工具", "图片", "趣味"}:
+            yield event.plain_result("用法：/资讯 [热榜|资讯|工具|图片|趣味]")
+            return
+        image = self.sixty.menu(self._accessible_entries(event), category)
+        yield event.chain_result([Comp.Image.fromBytes(image)])
+
     @staticmethod
     def _format_api_entry_summary(entry: APIEntry) -> str:
         """Build a compact one-line summary for an API entry.
@@ -166,6 +193,8 @@ class APIPlugin(Star):
         return result
 
     def _failure_text(self, entry: APIEntry) -> str:
+        if getattr(self, "sixty", None) is not None and self.sixty.owns(entry):
+            return f"{entry.name}暂时不可用：60s 上游未返回有效数据，请稍后重试。"
         reason = "上游接口暂时没有返回可用数据，请稍后重试。"
         try:
             details = json.loads((self.cfg.data_dir / "api_health.json").read_text(encoding="utf-8"))
@@ -179,6 +208,7 @@ class APIPlugin(Star):
         """Show the image menu; /娱乐 文字|图片|视频|语音 shows a category."""
         if not self._allowed(event):
             return
+        event.should_call_llm(True)
         aliases = {"文字": "text", "文本": "text", "图片": "image", "图": "image",
                    "视频": "video", "影": "video", "语音": "audio", "音频": "audio"}
         selected = aliases.get(category, "")
@@ -271,6 +301,8 @@ class APIPlugin(Star):
         if not self._allowed(event):
             return "API calls require a private message or an explicit @mention of the bot."
         query_text = str(query or "").strip()
+        if query_text in {"资讯菜单", "60s菜单", "热搜菜单"} and getattr(self.cfg, "sixty_enabled", False):
+            return "API: 资讯菜单\nType: image\nParams: -\n调用 call_api_by_name(api_name=资讯菜单) 发送图片菜单。"
         user_id = event.get_sender_id()
         group_id = event.get_group_id()
         session_id = event.unified_msg_origin
@@ -329,7 +361,8 @@ class APIPlugin(Star):
                         keywords_text,
                     ]
                 ).lower()
-                if query_lower in haystack or entry.check_activate(
+                row = BY_NAME.get(entry.name, {}) if getattr(self, "sixty", None) and self.sixty.owns(entry) else {}
+                if query_text in ({row.get("category"), "60s", "资讯"} if row else set()) or query_lower in haystack or entry.check_activate(
                     text=query_text,
                     user_id=user_id,
                     group_id=group_id,
@@ -378,6 +411,11 @@ class APIPlugin(Star):
         if not target_name:
             return "API call failed: api_name is required."
 
+        if target_name in {"资讯菜单", "60s菜单", "热搜菜单"} and getattr(self.cfg, "sixty_enabled", False):
+            async for result in self.sixty_menu(event):
+                await event.send(result)
+            return "API call succeeded: sent image result for 资讯菜单."
+
         user_id = event.get_sender_id()
         group_id = event.get_group_id()
         session_id = event.unified_msg_origin
@@ -413,16 +451,12 @@ class APIPlugin(Star):
             entry = matched_entries[0]
 
         args = [item for item in str(args_text or "").split() if item]
-        entry.updated_params = await self._build_params(event, entry, args)
-
         try:
-            data = await self.core.data_service.fetch(
-                entry,
-                use_local=self.cfg.use_local,
-            )
+            entry.updated_params = await self._build_params(event, entry, args)
+            data = await self._fetch_data(entry)
         except Exception as exc:
             logger.error(f"llm api call failed for {entry.name}: {exc}")
-            return f"API call failed: {exc}"
+            return "API call failed: " + (str(exc) if isinstance(exc, ValueError) else self._failure_text(entry))
 
         if data is None:
             return "API call failed: " + self._failure_text(entry)
@@ -475,15 +509,12 @@ class APIPlugin(Star):
 
         event.should_call_llm(True)
         for entry in entries:
-            entry.updated_params = await self._build_params(event, entry, args)
             try:
-                data = await self.core.data_service.fetch(
-                    entry,
-                    use_local=self.cfg.use_local,
-                )
+                entry.updated_params = await self._build_params(event, entry, args)
+                data = await self._fetch_data(entry)
             except Exception as exc:
                 logger.error(f"data processing failed for {entry.name}: {exc}")
-                yield event.plain_result(self._failure_text(entry))
+                yield event.plain_result(str(exc) if isinstance(exc, ValueError) else self._failure_text(entry))
                 continue
             if data is None:
                 yield event.plain_result(self._failure_text(entry))

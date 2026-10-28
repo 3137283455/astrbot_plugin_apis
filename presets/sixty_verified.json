@@ -1,0 +1,67 @@
+{
+  "tested_at": "2026-10-28",
+  "names": [
+    "抖音热搜",
+    "微博热搜",
+    "知乎热榜",
+    "B站热榜",
+    "百度热搜",
+    "贴吧热议",
+    "头条热搜",
+    "夸克热点",
+    "科技快讯",
+    "科技热榜",
+    "历史上的今天",
+    "摸鱼日报",
+    "百科查询",
+    "Epic喜加一",
+    "豆瓣电影",
+    "豆瓣国产剧",
+    "豆瓣海外剧",
+    "豆瓣综艺",
+    "读世界",
+    "来份早报",
+    "AI资讯",
+    "bing图",
+    "今日运势",
+    "发病",
+    "KFC",
+    "讲个笑话",
+    "生成二维码",
+    "一言",
+    "答案之书",
+    "冷笑话",
+    "随机唱歌",
+    "天气",
+    "天气预报",
+    "汇率",
+    "油价",
+    "金价",
+    "翻译",
+    "随机颜色",
+    "配色方案",
+    "音乐榜单"
+  ],
+  "unavailable": [
+    {
+      "name": "小红书热点",
+      "path": "/v2/rednote",
+      "error": "HTTP Error 500: Internal Server Error"
+    },
+    {
+      "name": "汽车热榜",
+      "path": "/v2/dongchedi",
+      "error": "HTTP Error 500: Internal Server Error"
+    },
+    {
+      "name": "电影票房",
+      "path": "/v2/maoyan/realtime/movie",
+      "error": "HTTP Error 500: Internal Server Error"
+    },
+    {
+      "name": "歌词查询",
+      "path": "/v2/lyric",
+      "error": "HTTP Error 404: Not Found"
+    }
+  ]
+}

@@ -13,6 +13,8 @@ PLUGIN_NAME = "astrbot_plugin_apis"
 
 
 class PluginConfig(BaseModel):
+    sixty_enabled: bool = False
+    sixty_base_url: str = "http://127.0.0.1:4399"
     need_prefix: bool = False
     save_data: bool = True
     use_local: bool = True

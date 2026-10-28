@@ -1,0 +1,510 @@
+[
+  {
+    "name": "抖音热搜",
+    "path": "/v2/douyin",
+    "category": "热榜",
+    "params": {},
+    "example": "/抖音热搜",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "微博热搜",
+    "path": "/v2/weibo",
+    "category": "热榜",
+    "params": {},
+    "example": "/微博热搜",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "知乎热榜",
+    "path": "/v2/zhihu",
+    "category": "热榜",
+    "params": {},
+    "example": "/知乎热榜",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "B站热榜",
+    "path": "/v2/bili",
+    "category": "热榜",
+    "params": {},
+    "example": "/B站热榜",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "百度热搜",
+    "path": "/v2/baidu/hot",
+    "category": "热榜",
+    "params": {},
+    "example": "/百度热搜",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "贴吧热议",
+    "path": "/v2/baidu/tieba",
+    "category": "热榜",
+    "params": {},
+    "example": "/贴吧热议",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "头条热搜",
+    "path": "/v2/toutiao",
+    "category": "热榜",
+    "params": {},
+    "example": "/头条热搜",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "小红书热点",
+    "path": "/v2/rednote",
+    "category": "热榜",
+    "params": {},
+    "example": "/小红书热点",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "夸克热点",
+    "path": "/v2/quark",
+    "category": "热榜",
+    "params": {},
+    "example": "/夸克热点",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "汽车热榜",
+    "path": "/v2/dongchedi",
+    "category": "热榜",
+    "params": {},
+    "example": "/汽车热榜",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "科技快讯",
+    "path": "/v2/it-news",
+    "category": "资讯",
+    "params": {},
+    "example": "/科技快讯",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "科技热榜",
+    "path": "/v2/it-news/rank",
+    "category": "资讯",
+    "params": {},
+    "example": "/科技热榜",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "历史上的今天",
+    "path": "/v2/today-in-history",
+    "category": "资讯",
+    "params": {},
+    "example": "/历史上的今天",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "摸鱼日报",
+    "path": "/v2/moyu",
+    "category": "资讯",
+    "params": {},
+    "example": "/摸鱼日报",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "百科查询",
+    "path": "/v2/baike",
+    "category": "工具",
+    "params": {
+      "word": ""
+    },
+    "example": "/百科查询 麻将",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "Epic喜加一",
+    "path": "/v2/epic",
+    "category": "资讯",
+    "params": {},
+    "example": "/Epic喜加一",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "豆瓣电影",
+    "path": "/v2/douban/weekly/movie",
+    "category": "资讯",
+    "params": {},
+    "example": "/豆瓣电影",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "豆瓣国产剧",
+    "path": "/v2/douban/weekly/tv_chinese",
+    "category": "资讯",
+    "params": {},
+    "example": "/豆瓣国产剧",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "豆瓣海外剧",
+    "path": "/v2/douban/weekly/tv_global",
+    "category": "资讯",
+    "params": {},
+    "example": "/豆瓣海外剧",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "豆瓣综艺",
+    "path": "/v2/douban/weekly/show_chinese",
+    "category": "资讯",
+    "params": {},
+    "example": "/豆瓣综艺",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "读世界",
+    "path": "/v2/60s",
+    "category": "资讯",
+    "params": {},
+    "example": "/读世界",
+    "encoding": "image-proxy",
+    "type": "image",
+    "aliases": [],
+    "replace": true
+  },
+  {
+    "name": "来份早报",
+    "path": "/v2/60s",
+    "category": "资讯",
+    "params": {},
+    "example": "/来份早报",
+    "encoding": "image-proxy",
+    "type": "image",
+    "aliases": [],
+    "replace": true
+  },
+  {
+    "name": "AI资讯",
+    "path": "/v2/ai-news",
+    "category": "资讯",
+    "params": {},
+    "example": "/AI资讯",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": true
+  },
+  {
+    "name": "bing图",
+    "path": "/v2/bing",
+    "category": "图片",
+    "params": {},
+    "example": "/bing图",
+    "encoding": "image",
+    "type": "image",
+    "aliases": [
+      "必应壁纸"
+    ],
+    "replace": true
+  },
+  {
+    "name": "电影票房",
+    "path": "/v2/maoyan/realtime/movie",
+    "category": "资讯",
+    "params": {},
+    "example": "/电影票房",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": true
+  },
+  {
+    "name": "今日运势",
+    "path": "/v2/luck",
+    "category": "趣味",
+    "params": {},
+    "example": "/今日运势",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": true
+  },
+  {
+    "name": "发病",
+    "path": "/v2/fabing",
+    "category": "趣味",
+    "params": {
+      "name": "主人"
+    },
+    "example": "/发病 慧慧",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": true
+  },
+  {
+    "name": "KFC",
+    "path": "/v2/kfc",
+    "category": "趣味",
+    "params": {},
+    "example": "/KFC",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [
+      "疯狂星期四"
+    ],
+    "replace": true
+  },
+  {
+    "name": "讲个笑话",
+    "path": "/v2/duanzi",
+    "category": "趣味",
+    "params": {},
+    "example": "/讲个笑话",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": true
+  },
+  {
+    "name": "生成二维码",
+    "path": "/v2/qrcode",
+    "category": "工具",
+    "params": {
+      "text": ""
+    },
+    "example": "/生成二维码 https://bilibili.com",
+    "encoding": "image",
+    "type": "image",
+    "aliases": [],
+    "replace": true
+  },
+  {
+    "name": "一言",
+    "path": "/v2/hitokoto",
+    "category": "趣味",
+    "params": {},
+    "example": "/一言",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "答案之书",
+    "path": "/v2/answer",
+    "category": "趣味",
+    "params": {},
+    "example": "/答案之书",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "冷笑话",
+    "path": "/v2/dad-joke",
+    "category": "趣味",
+    "params": {},
+    "example": "/冷笑话",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "随机唱歌",
+    "path": "/v2/changya",
+    "category": "趣味",
+    "params": {},
+    "example": "/随机唱歌",
+    "encoding": "audio",
+    "type": "audio",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "天气",
+    "path": "/v2/weather/realtime",
+    "category": "工具",
+    "params": {
+      "query": ""
+    },
+    "example": "/天气 上海",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "天气预报",
+    "path": "/v2/weather/forecast",
+    "category": "工具",
+    "params": {
+      "query": ""
+    },
+    "example": "/天气预报 上海",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "汇率",
+    "path": "/v2/exchange-rate",
+    "category": "工具",
+    "params": {
+      "currency": "CNY"
+    },
+    "example": "/汇率 USD",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "油价",
+    "path": "/v2/fuel-price",
+    "category": "工具",
+    "params": {
+      "region": "北京"
+    },
+    "example": "/油价 广东",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "金价",
+    "path": "/v2/gold-price",
+    "category": "工具",
+    "params": {},
+    "example": "/金价",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "歌词查询",
+    "path": "/v2/lyric",
+    "category": "工具",
+    "params": {
+      "query": ""
+    },
+    "example": "/歌词查询 晴天 周杰伦",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "翻译",
+    "path": "/v2/fanyi",
+    "category": "工具",
+    "params": {
+      "text": ""
+    },
+    "example": "/翻译 hello world",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "随机颜色",
+    "path": "/v2/color/random",
+    "category": "工具",
+    "params": {},
+    "example": "/随机颜色",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "配色方案",
+    "path": "/v2/color/palette",
+    "category": "工具",
+    "params": {
+      "color": "336699"
+    },
+    "example": "/配色方案 FF5733",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  },
+  {
+    "name": "音乐榜单",
+    "path": "/v2/ncm-rank/list",
+    "category": "资讯",
+    "params": {},
+    "example": "/音乐榜单",
+    "encoding": "text",
+    "type": "text",
+    "aliases": [],
+    "replace": false
+  }
+]
