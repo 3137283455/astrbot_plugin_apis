@@ -44,7 +44,6 @@ def render_menu(entries, category=""):
             draw.rounded_rectangle((x, y, x + 520, y + 50), radius=12, fill="white")
             draw.rectangle((x, y + 7, x + 6, y + 43), fill=COLORS[category])
             draw.text((x + 25, y + 8), name, font=_font(28), fill="#19343A")
-        footer = "/娱乐 返回总菜单 · 部分接口需要额外参数或可能临时不可用"
     else:
         draw.text((60, 244), "选择分类查看完整列表", font=_font(34), fill="#3A5459")
         for idx, (kind, label) in enumerate(LABELS.items()):
@@ -56,8 +55,8 @@ def render_menu(entries, category=""):
             draw.text((x + 27, y + 104), f"/娱乐 {label}", font=_font(27), fill=COLORS[kind])
             examples = "  ·  ".join(grouped[kind][:3]) or "当前无可用项目"
             draw.text((x + 27, y + 166), examples, font=_font(24), fill="#52696F")
-        footer = "资讯与热榜：/资讯   ·   分类：/娱乐 图片   ·   参数：/查看api 项目名"
-    draw.text((60, height - 78), footer, font=_font(24), fill="#52696F")
+    bottom=305+(rows-1)*64+50 if category else 815
+    image=image.crop((0,0,image.width,bottom+40))
     output = BytesIO()
     image.save(output, format="PNG", optimize=True)
     return output.getvalue()

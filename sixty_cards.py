@@ -77,6 +77,5 @@ def render_catalog(rows, category=""):
             hint = ("例：" + row["example"].split(" ", 1)[-1]) if row["params"] else "直接发送即可"
             draw.text((x + 14, top + 48), hint, font=_font(20), fill="#687891")
         y += ((len(items) + 2) // 3) * 100 + 18
-    draw.text((50, height - 135), "例：/天气 上海  ·  /翻译 hello world  ·  /发病 慧慧", font=_font(27), fill="#172B4D")
-    draw.text((50, height - 85), "参数统一放命令后；仅展示本机已接入的功能，数据以源站为准", font=_font(24), fill="#687891")
+    image=image.crop((0,0,image.width,y+24))
     return _png(image)
