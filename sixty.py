@@ -6,6 +6,7 @@ import hashlib
 import io
 import json
 import re
+import zlib
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -115,7 +116,11 @@ class SixtyBridge:
         params["encoding"] = row["encoding"]
         async with self.semaphore:
             async with ClientSession(timeout=ClientTimeout(total=35)) as session:
-                async with session.get(self.base + row["path"], params=params) as response:
+                # The image proxy can forward Content-Encoding:gzip after its
+                # upstream client has already decoded the PNG. Do not let the
+                # HTTP client attempt to decompress those image bytes again.
+                async with session.get(self.base + row["path"], params=params,
+                                       auto_decompress=row["encoding"] != "image-proxy") as response:
                     response.raise_for_status()
                     content_type = response.headers.get("Content-Type", "").lower()
                     data = bytearray()
@@ -124,6 +129,11 @@ class SixtyBridge:
                         if len(data) > 16 * 1024 * 1024:
                             raise ValueError("接口返回内容过大，请稍后重试。")
         raw = bytes(data)
+        if row["encoding"] == "image-proxy" and raw.startswith(b"\x1f\x8b"):
+            decoder = zlib.decompressobj(16 + zlib.MAX_WBITS)
+            raw = decoder.decompress(raw, 16 * 1024 * 1024 + 1)
+            if len(raw) > 16 * 1024 * 1024 or decoder.unconsumed_tail or not decoder.eof:
+                raise ValueError("图片压缩内容过大或不完整，请稍后重试。")
         if row["type"] == "image":
             with Image.open(io.BytesIO(raw)) as image:
                 image.verify()

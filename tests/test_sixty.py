@@ -38,6 +38,25 @@ class Event:
 
 
 class SixtyTests(unittest.IsolatedAsyncioTestCase):
+    async def test_news_proxy_handles_decoded_png_with_stale_gzip_header(self):
+        import gzip
+        buffer=io.BytesIO();Image.new('RGB',(40,30),'blue').save(buffer,format='PNG');png=buffer.getvalue()
+        state={'body':png}
+        async def handler(request):
+            return web.Response(body=state['body'],headers={'Content-Type':'image/png','Content-Encoding':'gzip'})
+        app=web.Application();app.router.add_get('/v2/60s',handler);runner=web.AppRunner(app);await runner.setup()
+        site=web.TCPSite(runner,'127.0.0.1',0);await site.start()
+        self.bridge.base=f'http://127.0.0.1:{site._server.sockets[0].getsockname()[1]}'
+        entry=APIEntry(build_payload(BY_NAME['来份早报'],self.bridge.base))
+        try:
+            result=await self.bridge.fetch(entry)
+            self.assertEqual(result.data_type,DataType.IMAGE);self.assertEqual(result.binary,png)
+            state['body']=gzip.compress(png)
+            self.assertEqual((await self.bridge.fetch(entry)).binary,png)
+            state['body']=gzip.compress(b'x'*(16*1024*1024+2))
+            with self.assertRaisesRegex(ValueError,'过大或不完整'):await self.bridge.fetch(entry)
+        finally:await runner.cleanup()
+
     async def asyncSetUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.cfg = SimpleNamespace(data_dir=Path(self.temp.name), sixty_enabled=True,
